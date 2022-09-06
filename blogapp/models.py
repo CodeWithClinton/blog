@@ -10,6 +10,8 @@ class Post(models.Model):
     slug = models.SlugField()
     created_on = models.DateTimeField(auto_now= True)
     updated = models.DateTimeField(auto_now= True)
+    likes = models.ManyToManyField(User, related_name='post')
+    
     def __str__(self):
         return self.title
 

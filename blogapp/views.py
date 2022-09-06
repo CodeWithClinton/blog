@@ -13,19 +13,35 @@ def blog_detail(request, slug):
     comments = post.comments.all()
     new_comment = None
     form = CommentForm()
+    msg = False
+    
+    if request.user.is_authenticated:
+        user = request.user
+        
+    
+        if post.likes.filter(id=user.id).exists():
+            msg = True
+    
+    
+    
     if request.method == 'POST':
+        
+        if request.user.is_authenticated:
+            user = request.user
+            
+            if post.likes.filter(id=user.id).exists():
+                post.likes.remove(user)
+                msg=False
+            
+            else:
+                post.likes.add(user)
+                msg=True
+            
+        
         form = CommentForm(request.POST)
         if form.is_valid():
             new_comment = form.save(commit=False)
             new_comment.post = post
             new_comment.save()
-    # if request.is_ajax():
-    #     form = CommentForm(request.POST)
-    #     if form.is_valid():
-    #         new_comment = form.save(commit=False)
-    #         new_comment.post = post
-    #         new_comment.save()
-    #         return JsonResponse({
-    #             'msg':'Success'
-    #         })
-    return render(request, 'blog_detail.html', {'post': post, 'comments':comments,'form':form, 'new_comment': new_comment})
+    return render(request, 'blog_detail.html', 
+                  {'post': post, 'comments':comments,'form':form, 'new_comment': new_comment, 'msg':msg})
