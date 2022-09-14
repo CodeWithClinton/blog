@@ -3,6 +3,7 @@ from .models import Post, Comment
 from .forms import CommentForm
 from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
+import json
 # Create your views here.
 def blog_index(request):
     posts = Post.objects.all().order_by('-created_on')
@@ -25,19 +26,6 @@ def blog_detail(request, slug):
     
     
     if request.method == 'POST':
-        
-        if request.user.is_authenticated:
-            user = request.user
-            
-            if post.likes.filter(id=user.id).exists():
-                post.likes.remove(user)
-                msg=False
-            
-            else:
-                post.likes.add(user)
-                msg=True
-            
-        
         form = CommentForm(request.POST)
         if form.is_valid():
             new_comment = form.save(commit=False)
@@ -45,3 +33,30 @@ def blog_detail(request, slug):
             new_comment.save()
     return render(request, 'blog_detail.html', 
                   {'post': post, 'comments':comments,'form':form, 'new_comment': new_comment, 'msg':msg})
+
+
+def like_post(request):
+    data = json.loads(request.body)
+    id = data["id"]
+    post = Post.objects.get(id=id)
+    checker = None
+    
+    if request.user.is_authenticated:
+        
+        if post.likes.filter(id=request.user.id).exists():
+            post.likes.remove(request.user)
+            checker = 0
+            
+            
+        else:
+            post.likes.add(request.user)
+            checker = 1
+    
+    likes = post.likes.count()
+    
+    info = {
+        "check": checker,
+        "num_of_likes": likes
+    }
+    
+    return JsonResponse(info, safe=False)

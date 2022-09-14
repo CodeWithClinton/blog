@@ -21,6 +21,11 @@
     border: none;
 }
 
+i{
+  font-size: 22px;
+  cursor: pointer;
+}
+
 </style>
 
 
@@ -58,40 +63,24 @@
         <p>{{post.body}}</p>
         <hr>
 
-
+        
+  
         
         <div class="like-container">
-          <p class="num-of-likes">{{post.likes.count}}</p>
+          <p class="num-of-likes" id ="num">{{post.likes.count}}</p>
 
-          <form action="" method='POST'>
-            {% csrf_token %}
+        {% if msg %}
 
-            {% if msg %}
+        <i class="fa-solid fa-heart"></i> 
+        
+        {% else %}
 
-            <button>
-              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
-              </svg>
-            </button>
+        <i class="fa-regular fa-heart"></i>
 
-            {% else %}
-
-            <button>
-              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
-                <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
-              </svg>
-            </button>
-
-            
-            {% endif %}
-
-           
-            
-
-          </form>
-
+        {% endif %}
 
           
+         
           
 
           <small>like</small>
@@ -113,26 +102,7 @@
             </form>
           </div>
         </div>
-        <!-- <script>
-          const form = document.getElementById('commentForm')/
-          form.addEventListener('submit', stopRefresh)
-          function stopRefresh(e){
-            e.preventDefault()
-            $.ajax({
-              type : 'POST',
-              url : "{% url 'blog_detail' post.slug %}",
-              data : $('#commentForm').serialize(),
-              dataType : 'json',
-              success: function(data){
-                if(data.msg == 'Success'){
-                  form.reset()
-                  alert('Comment added')
-                }
-              }
-            })
-          }
-        </script> -->
-
+       
         <!-- Single Comment -->
         {% for comment in comments %}
         <div class="media mb-4">
@@ -144,39 +114,75 @@
         </div>
         {% endfor %}
       </div>
-      <!-- <script>
-        $(document).on('submit', '#commentForm', function(e){
-          e.preventDefault()
-          $.ajax({
-            type : 'POST',
-            url: "{% url 'blog_detail' post.slug %}",
-            data:{
-              author: $('#author').val(),
-              body: $('#body').val(),
-              csrfmiddlewaretoken:$('input[author = csrfmiddlewaretoken]').val(),
-            },
-            success: function(){
+    
+<script>
 
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
-          });
-        });
-      </script> -->
-      <!-- <script>
-        const form = document.getElementById('commentForm')
-        form.addEventListener('submit', stopRefresh)
-        function stopRefresh(e){
-          e.preventDefault()
-          $.ajax({
-            type : 'POST',
-            url : "{% url 'blog_detail' post.slug %}",
-            data : $('#commentForm').serialize(),
-            dataType : 'json',
-            success: function(data){
-              if(data.msg == 'success'){
-                alert('Comment added')
-              }
-            }
-          })
         }
-      </script> -->
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+
+
+
+
+  let btn = document.querySelector("i")
+  let num_of_likes = document.getElementById("num")
+  let post_id = "{{post.id}}"
+
+  btn.addEventListener("click", likePost)
+
+  function likePost(e){
+    let url = "{% url 'like' %}"
+    const data = {id:post_id}
+
+    fetch(url, {
+      method: 'POST',
+      headers: {"Content-Type": "application/json",
+      'X-CSRFToken': csrftoken
+    },
+      body : JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(data => {
+      console.log(data)
+
+      if(data["check"] == 1){
+        btn.classList.remove("fa-regular")
+        btn.classList.add('fa-solid')
+      }
+
+      else if(data["check"] == 0){
+        btn.classList.add("fa-regular")
+        btn.classList.remove('fa-solid')
+      }
+
+      else{
+        alert("you need to login")
+      }
+
+      num_of_likes.innerHTML = data["num_of_likes"]
+
+
+
+    })
+
+
+  }
+
+</script>
+
 {% endblock %}
